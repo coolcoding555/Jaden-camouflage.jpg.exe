@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hide & Seek — Take Back Control</title>
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --accent: #7dd3fc;
+      --accent-2: #60a5fa;
+      --text: #e6eef8;
+      --muted: #9fb0c8;
+    }
+    * { box-sizing: border-box; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(1200px 600px at 10% 10%, rgba(96,165,250,0.06), transparent),
+                  linear-gradient(180deg, #071029 0%, var(--bg) 100%);
+      color: var(--text);
+      padding: 24px;
+    }
+    .container {
+      width: 760px;
+      max-width: 96vw;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(2,6,23,0.6);
+    }
+    header { display:flex; align-items:center; gap:16px; margin-bottom:12px; }
+    .logo {
+      width:56px; height:56px; border-radius:10px;
+      background: linear-gradient(135deg,var(--accent),var(--accent-2));
+      display:flex; align-items:center; justify-content:center; color:#05263b; font-weight:700;
+      box-shadow: 0 6px 16px rgba(96,165,250,0.12);
+      font-size:18px;
+    }
+    h1 { margin:0; font-size:18px; }
+    p.lead { margin:4px 0 0 0; color:var(--muted); font-size:13px; }
+    .top-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:12px; }
+    .info { display:flex; gap:12px; align-items:center; }
+    .badge {
+      background: rgba(255,255,255,0.02);
+      padding:8px 12px; border-radius:10px; color:var(--muted); font-size:13px;
+    }
+    .grid {
+      margin-top:16px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap:12px;
+    }
+    .tile {
+      background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.03);
+      height:140px;
+      border-radius:10px;
+      position:relative;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      transition:transform .12s ease, box-shadow .12s ease;
+      user-select:none;
+    }
+    .tile:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(2,6,23,0.45); }
+    .tile.revealed { cursor:default; transform:none; opacity:0.95; }
+    .tile .cover {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--muted);
+    }
+    .tile.found {
+      background: linear-gradient(135deg, rgba(125,211,252,0.12), rgba(96,165,250,0.08));
+      border: 1px solid rgba(125,211,252,0.18);
+      color: #042029;
+      font-weight:700;
+    }
+    .status {
+      margin-top:14px; display:flex; gap:12px; align-items:center; justify-content:space-between;
+    }
+    button {
+      background: linear-gradient(90deg,var(--accent),var(--accent-2));
+      color:#05263b; border:none; padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer;
+      box-shadow: 0 6px 18px rgba(96,165,250,0.12);
+    }
+    button.secondary {
+      background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); font-weight:600;
+    }
+    .message {
+      padding:12px; border-radius:10px; background:rgba(255,255,255,0.01); border:1px solid rgba(255,255,255,0.02); color:var(--muted);
+    }
+    .overlay {
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,0.6);
+      z-index:60; padding:20px; backdrop-filter: blur(4px);
+    }
+    .modal {
+      width:520px; max-width:96vw; background: #06202f; padding:20px; border-radius:12px; border:1px solid rgba(255,255,255,0.03);
+      box-shadow: 0 20px 60px rgba(2,6,23,0.6);
+    }
+    .controls { display:flex; gap:8px; align-items:center; }
+    footer { margin-top:14px; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; align-items:center; }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Hide and Seek Game">
+    <header>
+      <div class="logo">H&S</div>
+      <div>
+        <h1>Hide & Seek — Take Back Control (Harmless)</h1>
+        <p class="lead">Find the hidden friend. When you find them, the game celebrates — a playful way to "take back control".</p>
+      </div>
+    </header>
+
+    <div class="top-row">
+      <div class="info">
+        <div class="badge">Mode: <span id="modeText">Classic</span></div>
+        <div class="badge">Grid: <span id="gridSizeText">3×3</span></div>
+        <div class="badge">Tries: <span id="tries">0</span></div>
+      </div>
+      <div class="controls">
+        <button id="newBtn">New Round</button>
+        <button id="helpBtn" class="secondary">How to play</button>
+      </div>
+    </div>
+
+    <div class="grid" id="grid" aria-live="polite" role="region"></div>
+
+    <div class="status" aria-hidden="false">
+      <div class="message" id="message">Click a tile to reveal.</div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <div style="color:var(--muted); font-size:13px; text-align:right;">
+          <div>Time: <span id="time">0.0s</span></div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>Made for fun — does not lock your computer.</div>
+      <div>coolcoding555</div>
+    </footer>
+  </div>
+
+  <template id="tile-template">
+    <div class="tile" tabindex="0" role="button" aria-pressed="false">
+      <div class="cover">?</div>
+    </div>
+  </template>
+
+  <div id="modalRoot" style="display:none;"></div>
+
+  <script>
+    // Simple Hide & Seek game (safe and voluntary)
+    (function(){
+      const gridEl = document.getElementById('grid');
+      const triesEl = document.getElementById('tries');
+      const messageEl = document.getElementById('message');
+      const timeEl = document.getElementById('time');
+      const newBtn = document.getElementById('newBtn');
+      const helpBtn = document.getElementById('helpBtn');
+      const gridSizeText = document.getElementById('gridSizeText');
+      const modeText = document.getElementById('modeText');
+
+      const template = document.getElementById('tile-template').content;
+      let gridSize = 3;
+      let hiddenIndex = -1;
+      let tries = 0;
+      let found = false;
+      let startTs = 0;
+      let timerInterval = null;
+
+      function startTimer(){
+        startTs = performance.now();
+        timeEl.textContent = '0.0s';
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(()=>{
+          const t = (performance.now() - startTs)/1000;
+          timeEl.textContent = t.toFixed(1) + 's';
+        }, 100);
+      }
+      function stopTimer(){
+        if(timerInterval) clearInterval(timerInterval);
+      }
+
+      function newRound(){
+        gridEl.innerHTML = '';
+        tries = 0; triesEl.textContent = tries;
+        found = false;
+        messageEl.textContent = 'Click a tile to reveal.';
+        gridSize = 3; // fixed for now; could be made configurable
+        gridSizeText.textContent = gridSize + '×' + gridSize;
+        modeText.textContent = 'Classic';
+        const total = gridSize * gridSize;
+        hiddenIndex = Math.floor(Math.random() * total);
+        for(let i=0;i<total;i++){
+          const node = template.cloneNode(true);
+          const tile = node.querySelector('.tile');
+          tile.dataset.index = i;
+          tile.addEventListener('click', onTileClick);
+          tile.addEventListener('keydown', (e)=>{
+            if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tile.click(); }
+          });
+          gridEl.appendChild(tile);
+        }
+        startTimer();
+      }
+
+      function celebrate(){
+        stopTimer();
+        messageEl.textContent = 'You found them! You take back control. 🎉';
+        const t = ((performance.now()-startTs)/1000).toFixed(1);
+        // gentle visual celebration:
+        const tiles = gridEl.querySelectorAll('.tile');
+        tiles.forEach((el, idx) => {
+          if(idx == hiddenIndex) el.classList.add('found');
+          el.setAttribute('aria-pressed','true');
+        });
+        // show modal
+        showModal('You found them!', `Nice work — you found the hidden friend in ${tries} tries and ${t}s. This game is purely playful and won’t lock or control your device.`);
+      }
+
+      function onTileClick(e){
+        if(found) return;
+        const tile = e.currentTarget;
+        const idx = Number(tile.dataset.index);
+        if(tile.classList.contains('revealed')) return;
+        tile.classList.add('revealed');
+        tile.querySelector('.cover').textContent = '';
+        tries += 1; triesEl.textContent = tries;
+        if(idx === hiddenIndex){
+          found = true;
+          tile.classList.add('found');
+          celebrate();
+        } else {
+          // wrong spot: show small visual
+          tile.querySelector('.cover').textContent = 'empty';
+          messageEl.textContent = 'Not here — keep looking!';
+        }
+      }
+
+      function showModal(title, text){
+        const root = document.getElementById('modalRoot');
+        root.style.display = 'block';
+        root.innerHTML = `
+          <div class="overlay" role="dialog" aria-modal="true">
+            <div class="modal">
+              <h2 style="margin:0 0 8px 0">${escapeHtml(title)}</h2>
+              <p style="margin:0 0 12px 0; color:var(--muted)">${escapeHtml(text)}</p>
+              <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button id="modalNew">Play again</button>
+                <button id="modalClose" class="secondary">Close</button>
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('modalNew').addEventListener('click', ()=>{
+          closeModal();
+          newRound();
+        });
+      }
+      function closeModal(){
+        const root = document.getElementById('modalRoot');
+        root.style.display = 'none';
+        root.innerHTML = '';
+      }
+      function escapeHtml(s){ return (''+s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+      // help dialog
+      helpBtn.addEventListener('click', ()=>{
+        showModal('How to play', 'Click tiles to reveal them. Find the hidden friend. This is a playful, voluntary experience and will never lock your device or require you to regain system control.');
+      });
+
+      newBtn.addEventListener('click', newRound);
+
+      // start
+      newRound();
+
+      // accessibility: stop timer when page hidden
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.hidden) stopTimer(); else if(!found) startTimer();
+      });
+
+    })();
+  </script>
+</body>
+</html>
