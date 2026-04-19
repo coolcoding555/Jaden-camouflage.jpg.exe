@@ -1,0 +1,18 @@
+@echo off
+set "URL=https://m.youtube.com/shorts/gBYei0oDe8w"
+
+REM Try Chrome in Program Files (x86)
+if exist "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" (
+  "%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe" --new-tab "%URL%"
+  goto :eof
+)
+
+REM Try Chrome in Program Files
+if exist "%ProgramFiles%\Google\Chrome\Application\chrome.exe" (
+  "%ProgramFiles%\Google\Chrome\Application\chrome.exe" --new-tab "%URL%"
+  goto :eof
+)
+
+REM Fallback: use chrome on PATH or default browser
+start "" chrome "%URL%"
+goto :eof
