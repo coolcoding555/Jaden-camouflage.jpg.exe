@@ -1,0 +1,17 @@
+import os
+import platform
+import subprocess
+
+path = "Jaden camouflage.jpg"  # change to full path if the file isn't in the script folder
+
+def open_file(path):
+    system = platform.system()
+    if system == "Windows":
+        os.startfile(path)
+    elif system == "Darwin":  # macOS
+        subprocess.run(["open", path], check=False)
+    else:  # Linux and others
+        subprocess.run(["xdg-open", path], check=False)
+
+if __name__ == "__main__":
+    open_file(path)
